@@ -31,9 +31,29 @@ if 'creds' in st.session_state:
             headers = {
                 'Authorization': AUTH_HEADER
             }
-            
             response = requests.get(URL, headers=headers)
-            
+            # Check if request was successful
+            if response.status_code == 200:
+                # Display result in a large text area
+                st.success(f"Success! Status Code: {response.status_code}")
+                # 2. Create the DataFrame
+                raw_text = response.text
+                # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
+                df = pd.read_csv(StringIO(raw_text))
+                st.session_state['bdf']=df
+            else:
+                st.error(f"Failed to fetch data. Status Code: {response.status_code}")
+                st.text(response.text)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
+        URL = f"http://{baseurl}/csp/myrest/flight/ww/all"
+        AUTH_HEADER = f"Basic {token}" # Replace with your actual encoded credentials
+        try:
+            headers = {
+                'Authorization': AUTH_HEADER
+            }
+            response = requests.get(URL, headers=headers)
             # Check if request was successful
             if response.status_code == 200:
                 # Display result in a large text area
@@ -43,25 +63,114 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-
-                # 3. Optional: Convert date columns to actual datetime objects for better sorting/filtering
-                df['Arrival'] = pd.to_datetime(df['Arrival'])
-                df['Departure'] = pd.to_datetime(df['Departure'])
-
-                # 4. Display in Streamlit
-                st.subheader("Flight Data")
-                st.dataframe(df, use_container_width=True)
-
-                # 5. Show some stats if you want
-                st.write(f"Average Fare: ${df['FareAvgSGD'].mean():.2f}")
+                st.session_state['bdf_ww']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
                 st.text(response.text)
-                
-                
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        
+        URL = f"http://{baseurl}/csp/myrest/events/filter?type=ISC"
+        AUTH_HEADER = f"Basic {token}" # Replace with your actual encoded credentials
+        try:
+            headers = {
+                'Authorization': AUTH_HEADER
+            }
+            response = requests.get(URL, headers=headers)
+            # Check if request was successful
+            if response.status_code == 200:
+                # Display result in a large text area
+                st.success(f"Success! Status Code: {response.status_code}")
+                #st.text_area("Response Result:", value=response.text, height=400)
+                # 2. Create the DataFrame
+                raw_text = response.text
+                # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
+                df = pd.read_csv(StringIO(raw_text))
+                st.session_state['edf_isc']=df
+            else:
+                st.error(f"Failed to fetch data. Status Code: {response.status_code}")
+                st.text(response.text)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        URL = f"http://{baseurl}/csp/myrest/events/filter?type=Run"
+        AUTH_HEADER = f"Basic {token}" # Replace with your actual encoded credentials
+        try:
+            headers = {
+                'Authorization': AUTH_HEADER
+            }
+            response = requests.get(URL, headers=headers)
+            # Check if request was successful
+            if response.status_code == 200:
+                # Display result in a large text area
+                st.success(f"Success! Status Code: {response.status_code}")
+                #st.text_area("Response Result:", value=response.text, height=400)
+                # 2. Create the DataFrame
+                raw_text = response.text
+                # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
+                df = pd.read_csv(StringIO(raw_text))
+                st.session_state['edf_run']=df
+            else:
+                st.error(f"Failed to fetch data. Status Code: {response.status_code}")
+                st.text(response.text)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        URL = f"http://{baseurl}/csp/myrest/events/filter?type=Friend"
+        AUTH_HEADER = f"Basic {token}" # Replace with your actual encoded credentials
+        try:
+            headers = {
+                'Authorization': AUTH_HEADER
+            }
+            response = requests.get(URL, headers=headers)
+            # Check if request was successful
+            if response.status_code == 200:
+                # Display result in a large text area
+                st.success(f"Success! Status Code: {response.status_code}")
+                #st.text_area("Response Result:", value=response.text, height=400)
+                # 2. Create the DataFrame
+                raw_text = response.text
+                # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
+                df = pd.read_csv(StringIO(raw_text))
+                st.session_state['edf_friend']=df
+            else:
+                st.error(f"Failed to fetch data. Status Code: {response.status_code}")
+                st.text(response.text)
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+        URL = f"http://{baseurl}/csp/myrest/events/filter?type=Family"
+        AUTH_HEADER = f"Basic {token}" # Replace with your actual encoded credentials
+        try:
+            headers = {
+                'Authorization': AUTH_HEADER
+            }
+            response = requests.get(URL, headers=headers)
+            # Check if request was successful
+            if response.status_code == 200:
+                # Display result in a large text area
+                st.success(f"Success! Status Code: {response.status_code}")
+                #st.text_area("Response Result:", value=response.text, height=400)
+                # 2. Create the DataFrame
+                raw_text = response.text
+                # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
+                df = pd.read_csv(StringIO(raw_text))
+                st.session_state['edf_family']=df
+            else:
+                st.error(f"Failed to fetch data. Status Code: {response.status_code}")
+                st.text(response.text)
         except Exception as e:
             st.error(f"An error occurred: {e}")
 
+if 'bdf' in st.session_state:
+    st.dataframe(st.session_state['bdf'])
+if 'bdf_ww' in st.session_state:
+    st.dataframe(st.session_state['bdf_ww'])
+if 'edf_isc' in st.session_state:
+    st.dataframe(st.session_state['edf_isc'])
+if 'edf_run' in st.session_state:
+    st.dataframe(st.session_state['edf_run'])
+if 'edf_isc' in st.session_state:
+    st.dataframe(st.session_state['edf_friend'])
+if 'edf_run' in st.session_state:
+    st.dataframe(st.session_state['edf_family'])
 
 # 4. Clear everything
 if st.sidebar.button("Clear All Session Data"):
