@@ -6,7 +6,7 @@ def clear_session():
     for key in list(st.session_state.keys()):
         del st.session_state[key]
 
-uploaded_file = st.file_uploader("Upload credentials.txt", type=["txt"])
+uploaded_file = st.sidebar.file_uploader("Upload credentials.txt", type=["txt"])
 if uploaded_file and 'creds' not in st.session_state:
     content = uploaded_file.read().decode("utf-8")
     creds = {}
@@ -45,8 +45,8 @@ if 'creds' in st.session_state:
 
 
 # 4. Clear everything
-if st.button("Clear All Session Data"):
+if st.sidebar.button("Clear All Session Data"):
     clear_session()
     st.rerun()
 
-st.info("Note: All session data is automatically destroyed when the browser tab is closed.")
+st.sidebar.info("Note: All session data is automatically destroyed when the browser tab is closed.")
