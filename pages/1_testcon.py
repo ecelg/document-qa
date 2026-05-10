@@ -1,6 +1,5 @@
 import streamlit as st
-from sqlalchemy import create_engine
-import pandas as pd
+import requests
 
 # Function to wipe session data
 def clear_session():
@@ -21,18 +20,29 @@ if uploaded_file and 'creds' not in st.session_state:
 if 'creds' in st.session_state:
     if st.button("showcredential"):
         c = st.session_state['creds']
-        constr=str(c.get('str'))
-        st.write(constr)
-        engine = create_engine(constr)
-        sql_query = """
-        SELECT
-            ID, airline->name as airline, flightnumber, arrival, bookref, departure, fromcity->code as fromcity, tocity->code as tocity,
-            faretype->code as faretype, bookingprice->avgfaretotalsgd AS fareavgsgd
-        FROM flight_trans.booking
-        order by departure desc
-        """
-        df = pd.read_sql(sql_query, engine)
-        engine.dispose()
+        baseurl=str(c.get('str'))
+        token=str(c.get('token'))
+        URL = f"http://{baseurl}/csp/myrest/event/7"
+        AUTH_HEADER = f"Basic {token}" # Replace with your actual encoded credentials
+        try:
+            headers = {
+                'Authorization': AUTH_HEADER
+            }
+            
+            response = requests.get(URL, headers=headers)
+            
+            # Check if request was successful
+            if response.status_code == 200:
+                # Display result in a large text area
+                st.success(f"Success! Status Code: {response.status_code}")
+                st.text_area("Response Result:", value=response.text, height=400)
+            else:
+                st.error(f"Failed to fetch data. Status Code: {response.status_code}")
+                st.text(response.text)
+                
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
 
 # 4. Clear everything
 if st.button("Clear All Session Data"):
