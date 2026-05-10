@@ -40,8 +40,8 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-                df['departure'] = pd.to_datetime(df['departure'])
-                df['arrival'] = pd.to_datetime(df['arrival'])
+                df['departure'] = pd.to_datetime(df['Departure'])
+                df['arrival'] = pd.to_datetime(df['Arrival'])
                 st.session_state['bdf']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
@@ -65,8 +65,8 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-                df['departure'] = pd.to_datetime(df['departure'])
-                df['arrival'] = pd.to_datetime(df['arrival'])
+                df['departure'] = pd.to_datetime(df['Departure'])
+                df['arrival'] = pd.to_datetime(df['Arrival'])
                 st.session_state['bdf_ww']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
@@ -90,8 +90,8 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-                df['starttime'] = pd.to_datetime(df['starttime'])
-                df['endtime'] = pd.to_datetime(df['endtime'])
+                df['starttime'] = pd.to_datetime(df['StartTime'])
+                df['endtime'] = pd.to_datetime(df['EndTime'])
                 st.session_state['edf_isc']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
@@ -114,8 +114,8 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-                df['starttime'] = pd.to_datetime(df['starttime'])
-                df['endtime'] = pd.to_datetime(df['endtime'])
+                df['starttime'] = pd.to_datetime(df['StartTime'])
+                df['endtime'] = pd.to_datetime(df['EndTime'])
                 st.session_state['edf_run']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
@@ -138,8 +138,8 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-                df['starttime'] = pd.to_datetime(df['starttime'])
-                df['endtime'] = pd.to_datetime(df['endtime'])
+                df['starttime'] = pd.to_datetime(df['StartTime'])
+                df['endtime'] = pd.to_datetime(df['EndTime'])
                 st.session_state['edf_friend']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
@@ -162,8 +162,8 @@ if 'creds' in st.session_state:
                 raw_text = response.text
                 # FIX: Wrap the text in StringIO so pandas doesn't think it's a filename
                 df = pd.read_csv(StringIO(raw_text))
-                df['starttime'] = pd.to_datetime(df['starttime'])
-                df['endtime'] = pd.to_datetime(df['endtime'])
+                df['starttime'] = pd.to_datetime(df['StartTime'])
+                df['endtime'] = pd.to_datetime(df['EndTime'])
                 st.session_state['edf_family']=df
             else:
                 st.error(f"Failed to fetch data. Status Code: {response.status_code}")
