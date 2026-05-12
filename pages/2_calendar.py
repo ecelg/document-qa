@@ -349,7 +349,7 @@ if show_ev_family:
                 "start": row['starttime'].isoformat(),
                 "end": row['endtime'].isoformat(),
                 "resourceId": "familyevent",
-                "color": "#03ffcd",  # Gold/Yellow
+                "color": "#d503ffb3",  # Gold/Yellow
                 "extendedProps": {
                     "type": "event",
                     "eventid": row['ID'],
