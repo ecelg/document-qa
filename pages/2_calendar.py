@@ -288,76 +288,80 @@ if show_hk:
 if show_ev_isc:
     if 'edf_isc' in st.session_state:
         for _, row in st.session_state['edf_isc'].iterrows():
-            calendar_events.append({
-                "title": f"{row['eventtype']}: {row['name']}",
-                "start": row['starttime'].isoformat(),
-                "end": row['endtime'].isoformat(),
-                "resourceId": "iscevent",
-                "color": "#ff03c8",  # Gold/Yellow
-                "extendedProps": {
-                    "type": "event",
-                    "eventid": row['ID'],
-                    "eventtype" : row['eventtype'],
-                    "status": row['status'],
-                    "description":f"**INFO:** {row['descp']}"
-                }
-            })
+            if row['status']!='cancel':
+                calendar_events.append({
+                    "title": f"{row['eventtype']}: {row['name']}",
+                    "start": row['starttime'].isoformat(),
+                    "end": row['endtime'].isoformat(),
+                    "resourceId": "iscevent",
+                    "color": "#ff03c8",  # Gold/Yellow
+                    "extendedProps": {
+                        "type": "event",
+                        "eventid": row['ID'],
+                        "eventtype" : row['eventtype'],
+                        "status": row['status'],
+                        "description":f"**INFO:** {row['descp']}"
+                    }
+                })
         
 # E. Add Run event (if enabled)
 if show_ev_run:
     if 'edf_run' in st.session_state:
         for _, row in st.session_state['edf_run'].iterrows():
-            calendar_events.append({
-                "title": f"{row['eventtype']}: {row['name']}",
-                "start": row['starttime'].isoformat(),
-                "end": row['endtime'].isoformat(),
-                "resourceId": "iscevent",
-                "color": "#ff9e03",  # Gold/Yellow
-                "extendedProps": {
-                    "type": "event",                
-                    "eventid": row['ID'],
-                    "eventtype" : row['eventtype'],
-                    "status": row['status'],
-                    "description":f"**INFO:** {row['descp']}"
-                }
-            })
+            if row['status']!='cancel':
+                calendar_events.append({
+                    "title": f"{row['eventtype']}: {row['name']}",
+                    "start": row['starttime'].isoformat(),
+                    "end": row['endtime'].isoformat(),
+                    "resourceId": "iscevent",
+                    "color": "#ff9e03",  # Gold/Yellow
+                    "extendedProps": {
+                        "type": "event",                
+                        "eventid": row['ID'],
+                        "eventtype" : row['eventtype'],
+                        "status": row['status'],
+                        "description":f"**INFO:** {row['descp']}"
+                    }
+                })
 # F. Add Friend event (if enabled)
 if show_ev_friend:
     if 'edf_friend' in st.session_state:
         for _, row in st.session_state['edf_friend'].iterrows():
-            calendar_events.append({
-                "title": f"{row['eventtype']}: {row['name']}",
-                "start": row['starttime'].isoformat(),
-                "end": row['endtime'].isoformat(),
-                "resourceId": "friendevent",
-                "color": "#03ffcd",  # Gold/Yellow
-                "extendedProps": {
-                    "type": "event",
-                    "eventid": row['ID'],
-                    "eventtype" : row['eventtype'],
-                    "status": row['status'],
-                    "description":f"**INFO:** {row['descp']}"
-                }
-            })
+            if row['status']!='cancel':
+                calendar_events.append({
+                    "title": f"{row['eventtype']}: {row['name']}",
+                    "start": row['starttime'].isoformat(),
+                    "end": row['endtime'].isoformat(),
+                    "resourceId": "friendevent",
+                    "color": "#03ffcd",  # Gold/Yellow
+                    "extendedProps": {
+                        "type": "event",
+                        "eventid": row['ID'],
+                        "eventtype" : row['eventtype'],
+                        "status": row['status'],
+                        "description":f"**INFO:** {row['descp']}"
+                    }
+                })
 
 # F. Add Family event (if enabled)
 if show_ev_family:
     if 'edf_family' in st.session_state:
         for _, row in st.session_state['edf_family'].iterrows():
-            calendar_events.append({
-                "title": f"{row['eventtype']}: {row['name']}",
-                "start": row['starttime'].isoformat(),
-                "end": row['endtime'].isoformat(),
-                "resourceId": "familyevent",
-                "color": "#d503ffb3",  # Gold/Yellow
-                "extendedProps": {
-                    "type": "event",
-                    "eventid": row['ID'],
-                    "eventtype" : row['eventtype'],
-                    "status": row['status'],
-                    "description":f"**INFO:** {row['descp']}"
-                }
-            })
+            if row['status']!='cancel':
+                calendar_events.append({
+                    "title": f"{row['eventtype']}: {row['name']}",
+                    "start": row['starttime'].isoformat(),
+                    "end": row['endtime'].isoformat(),
+                    "resourceId": "familyevent",
+                    "color": "#d503ffb3",  # Gold/Yellow
+                    "extendedProps": {
+                        "type": "event",
+                        "eventid": row['ID'],
+                        "eventtype" : row['eventtype'],
+                        "status": row['status'],
+                        "description":f"**INFO:** {row['descp']}"
+                    }
+                })
 
 # --- 3. Calendar View Logic ---
 calendar_options = {
