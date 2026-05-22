@@ -10,20 +10,45 @@ st.title("QR Code Toolbox")
 tab1, tab2 = st.tabs(["🔍 QR Scanner", "✨ QR Generator"])
 
 # ==========================================
-# TAB 1: QR CODE SCANNER (iPhone Compatible)
+# TAB 1: QR CODE SCANNER (Camera + Upload)
 # ==========================================
 with tab1:
-    st.subheader("Scan QR Code")
+    st.subheader("Scan or Upload QR Code")
 
+    # --- SECTION A: File Uploader ---
+    uploaded_file = st.file_uploader(
+        "Upload a QR code image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"]
+    )
+
+    if uploaded_file is not None:
+        # Convert uploaded file to OpenCV format
+        file_bytes = np.frombuffer(uploaded_file.read(), np.uint8)
+        cv2_img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+        # Decode
+        detector = cv2.QRCodeDetector()
+        data, bbox, straight_qrcode = detector.detectAndDecode(cv2_img)
+
+        if data:
+            st.success("🎉 QR Code Detected From Upload!")
+            st.write(f"**Decoded Content:** {data}")
+        else:
+            st.error(
+                "Could not find a valid QR code in this image. Make sure it is clear and unblurred."
+            )
+
+    st.divider()  # Visual separation between upload and live camera
+
+    # --- SECTION B: Live Camera Scanner ---
     if "scanning" not in st.session_state:
         st.session_state.scanning = False
 
     if not st.session_state.scanning:
-        if st.button("Start Scanner", key="btn_start"):
+        if st.button("Open Live Camera Scanner", key="btn_start"):
             st.session_state.scanning = True
             st.rerun()
     else:
-        if st.button("Close Scanner", key="btn_stop"):
+        if st.button("Close Live Camera", key="btn_stop"):
             st.session_state.scanning = False
             st.rerun()
 
@@ -40,29 +65,30 @@ with tab1:
             data, bbox, straight_qrcode = detector.detectAndDecode(cv2_img)
 
             if data:
-                st.success("🎉 QR Code Detected Successfully!")
+                st.success("🎉 Live QR Code Detected Successfully!")
                 st.write(f"**Decoded Content:** {data}")
                 st.session_state.scanning = False
                 st.button("Scan Again", key="btn_again")
             else:
-                st.error("No valid QR code found. Please try again.")
+                st.error("No valid QR code found in camera frame. Try again.")
+
 
 # ==========================================
-# TAB 2: QR CODE GENERATOR
+# TAB 2: QR CODE GENERATOR (Remains Same)
 # ==========================================
 with tab2:
     st.subheader("Generate QR Code")
 
-    # User input field
     user_input = st.text_input(
-        "Enter text or URL to convert into a QR code:", placeholder="https://"
+        "Enter text or URL to convert into a QR code:",
+        placeholder="https://",
+        key="gen_input",
     )
 
     if st.button("Generate QR Code", key="btn_generate"):
         if user_input.strip() == "":
             st.warning("Please enter some text or a link first!")
         else:
-            # Configure and generate the QR code image
             qr = qrcode.QRCode(
                 version=1,
                 error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -72,18 +98,14 @@ with tab2:
             qr.add_data(user_input)
             qr.make(fit=True)
 
-            # Create PIL image
             img = qr.make_image(fill_color="black", back_color="white")
 
-            # Convert PIL image to bytes so Streamlit can display/download it
             buf = io.BytesIO()
             img.save(buf, format="PNG")
             byte_im = buf.getvalue()
 
-            # Display the generated QR code
             st.image(byte_im, caption="Your Generated QR Code", width=250)
 
-            # Add a button allowing users to download the image
             st.download_button(
                 label="📥 Download QR Code Image",
                 data=byte_im,
