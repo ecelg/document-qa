@@ -36,6 +36,21 @@ if "form_data" not in st.session_state:
     st.session_state.form_data = {}
 
 # ==========================================
+# CALLBACK FUNCTION FOR TAB-TO-TAB TRANSFER
+# ==========================================
+def transfer_json_to_form(json_payload):
+    """Callback that guarantees data is safely injected into Tab 1 state before a rerun."""
+    # 1. Clear old form sub-widget cache keys to prevent UI ghosting
+    for key in list(st.session_state.keys()):
+        if key.startswith("root.") or key.startswith("Observation.") or key.startswith("Patient.") or "." in key or "[" in key:
+            del st.session_state[key]
+            
+    # 2. Inject fresh payload data
+    st.session_state.form_data = json_payload
+    st.session_state["json_input_area"] = json.dumps(json_payload, indent=2)
+    st.toast("🎯 Payload transferred to Tab 1! Switch to 'Create CSV from JSON' to edit.")
+
+# ==========================================
 # HELPER FUNCTIONS FOR RENDERING & PARSING
 # ==========================================
 def render_dynamic_inputs(data, parent_key=""):
@@ -205,6 +220,11 @@ with tab1:
         ]
     }
     
+    # Check if a custom value has been loaded via Tab 3's callback
+    default_text = json.dumps(sample_json, indent=2)
+    if "json_input_area" in st.session_state:
+        default_text = st.session_state["json_input_area"]
+
     json_input = st.text_area(
         "Paste your complex JSON object here:", 
         height=200,
@@ -305,6 +325,27 @@ with tab3:
         res_type = st.text_input("Resource Type", value="Patient", help="Example: Patient, Observation, Practitioner")
         res_id = st.text_input("Resource ID (Optional)", value="", help="Leave empty to retrieve a list of this type")
 
+        # New search parameters section
+        st.markdown("### 🔍 Search Filters (Optional)")
+        st.caption("Filters are ignored if a specific Resource ID is provided above.")
+
+        # Columns for Parameter 1
+        p_col1_key, p_col1_val = st.columns(2)
+        with p_col1_key:
+            param1_key = st.text_input("Parameter 1 Key", value="", placeholder="e.g., gender")
+        with p_col1_val:
+            param1_val = st.text_input("Parameter 1 Value", value="", placeholder="e.g., female")
+
+        # Columns for Parameter 2
+        p_col2_key, p_col2_val = st.columns(2)
+        with p_col2_key:
+            param2_key = st.text_input("Parameter 2 Key", value="", placeholder="e.g., _count")
+        with p_col2_val:
+            param2_val = st.text_input("Parameter 2 Value", value="", placeholder="e.g., 10")
+        
+        if "last_fetched_json" not in st.session_state:
+            st.session_state.last_fetched_json = None
+
         if st.button("Fetch Target Resource"):
             if not baseurl or not token:
                 st.error("Invalid configuration profiles detected. Ensure `baseurl` and `token` exist in the file.")
@@ -312,8 +353,18 @@ with tab3:
                 # Construct target endpoint following clean URL formatting rules
                 clean_base = baseurl.rstrip('/')
                 URL = f"{clean_base}/{res_type.strip()}"
+
+                # Setup parameters dictionary
+                search_params = {}
+
                 if res_id.strip():
                     URL += f"/{res_id.strip()}"
+                else:
+                    # Append query key-values dynamically if provided
+                    if param1_key.strip() and param1_val.strip():
+                        search_params[param1_key.strip()] = param1_val.strip()
+                    if param2_key.strip() and param2_val.strip():
+                        search_params[param2_key.strip()] = param2_val.strip()
 
                 # Match authorization layout used by your server specification
                 headers = {
@@ -323,22 +374,24 @@ with tab3:
 
                 with st.spinner(f"Querying endpoint: {URL}..."):
                     try:
-                        response = requests.get(URL, headers=headers, timeout=10)
+                        response = requests.get(URL, headers=headers, params=search_params, timeout=10)
                         
                         if response.status_code == 200:
+                            st.session_state.last_fetched_json = response.json()
                             st.success(f"Success! Status Code: 200")
-                            fetched_json = response.json()
-                            
-                            # Render interactive JSON explorer window
-                            st.json(fetched_json)
-                            
-                            # Interactive link to feed this back to Tab 1 Form Generator dynamically
-                            if st.button("Load this payload directly into Tab 1"):
-                                st.session_state.form_data = fetched_json
-                                st.toast("Transferred to Form Tab successfully!")
                         else:
+                            st.session_state.last_fetched_json = None
                             st.error(f"Failed to fetch data. Status Code: {response.status_code}")
-                            st.text_area("Server Error Response Context", value=response.text, height=200)
-                            
+                            st.text_area("Server Response Context", value=response.text, height=150)
                     except Exception as e:
-                        st.error(f"An unexpected connectivity error occurred: {e}")
+                        st.session_state.last_fetched_json = None
+                        st.error(f"Connectivity error: {e}")
+                
+                # Render data and transfer action options if data exists
+                if st.session_state.last_fetched_json is not None:
+                    st.json(st.session_state.last_fetched_json)
+                    # FIXED: Uses args and an explicit callback to mutate session state safely before the app reruns
+                    st.button("Load this payload directly into Tab 1",
+                              on_click=transfer_json_to_form,
+                              args=(st.session_state.last_fetched_json,)
+                              )
