@@ -1,42 +1,43 @@
 import cv2
 import numpy as np
 import streamlit as st
-from camera_input_live import camera_input_live
 
-st.title("QR Code Scanner")
+st.title("iPhone Compatible QR Scanner")
 
-# 1. Initialize session state to track camera status
-if "run_camera" not in st.session_state:
-    st.session_state.run_camera = False
+# 1. Initialize session state to track if we are actively scanning
+if "scanning" not in st.session_state:
+    st.session_state.scanning = False
 
-# 2. Add the toggle button
-if st.session_state.run_camera:
-    if st.button("Stop Camera"):
-        st.session_state.run_camera = False
+# 2. Toggle button to control the camera UI
+if not st.session_state.scanning:
+    if st.button("Start Scanner"):
+        st.session_state.scanning = True
         st.rerun()
 else:
-    if st.button("Start Capture"):
-        st.session_state.run_camera = True
+    if st.button("Close Scanner"):
+        st.session_state.scanning = False
         st.rerun()
 
-# 3. Only run the camera if the state is True
-if st.session_state.run_camera:
-    detector = cv2.QRCodeDetector()
-    image = camera_input_live()
+# 3. Secure camera widget for iOS
+if st.session_state.scanning:
+    # st.camera_input triggers native iOS camera integration smoothly
+    img_file = st.camera_input("Position the QR code inside the frame")
 
-    if image:
-        bytes_data = image.getvalue()
+    if img_file is not None:
+        # Convert the picture to an OpenCV matrix
+        bytes_data = img_file.getvalue()
         cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
+
+        # Detect and decode the QR code
+        detector = cv2.QRCodeDetector()
         data, bbox, straight_qrcode = detector.detectAndDecode(cv2_img)
 
         if data:
-            st.success("QR Code Detected!")
-            st.write(f"**Content:** {data}")
+            st.success("🎉 QR Code Detected Successfully!")
+            st.write(f"**Decoded Content:** {data}")
             
-            # Optional: Stop camera automatically after a successful scan
-            st.session_state.run_camera = False
-            st.rerun()
+            # Close camera automatically after successful reading
+            st.session_state.scanning = False
+            st.button("Scan Again")
         else:
-            st.info("Place a QR code in front of the camera.")
-else:
-    st.info("Camera is turned off. Click 'Start Capture' to begin scanning.")
+            st.error("No valid QR code found in this photo. Please try again.")
