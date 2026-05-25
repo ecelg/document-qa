@@ -105,13 +105,7 @@ with tab2:
     # --- ADDED: Font Size Control Slider ---
     text_size = st.slider("Adjust Text Size:", min_value=12, max_value=48, value=24, step=2)
 
-    # Download a reliable font asset directly into your project root directory if missing
-    FONT_PATH = "Roboto-Bold.ttf"
-    if not os.path.exists(FONT_PATH):
-        url = "https://github.com"
-        urllib.request.urlretrieve(url, FONT_PATH)
-    font = ImageFont.truetype(FONT_PATH, size=text_size)
-
+    font = ImageFont.truetype("Roboto-Bold.ttf", size=text_size)
 
     if st.button("Generate QR Code", key="btn_generate"):
         if user_input.strip() == "":
