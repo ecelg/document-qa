@@ -105,7 +105,16 @@ with tab2:
     # --- ADDED: Font Size Control Slider ---
     text_size = st.slider("Adjust Text Size:", min_value=12, max_value=48, value=24, step=2)
 
-    font = ImageFont.truetype("Roboto-Bold.ttf", size=text_size)
+    # --- UPDATED: Load your uploaded custom font ---
+    FONT_FILE = "Roboto-Bold.ttf"  # Change this to match your exact filename
+
+    try:
+        # This reads the font file uploaded to your GitHub repository
+        font = ImageFont.truetype(FONT_FILE, size=text_size)
+    except IOError:
+        # Universal fallback if the file is missing or misspelled
+        st.warning(f"Font file '{FONT_FILE}' not found in repo. Falling back to resizable system default.")
+        font = ImageFont.load_default(size=text_size)
 
     if st.button("Generate QR Code", key="btn_generate"):
         if user_input.strip() == "":
