@@ -160,7 +160,7 @@ def unflatten_json(flat_dict):
     return result
 
 # Create the three main tabs
-tab1, tab2, tab3 = st.tabs(["Create CSV from JSON", "Upload & View CSV", "Fetch FHIR Resources"])
+tab1, tab2, tab3, tab4 = st.tabs(["Create CSV from JSON", "Upload & View CSV", "Fetch FHIR Resources", "PUT/POST FHIR Resources"])
 
 # ==========================================
 # TAB 1: CREATE CSV FROM JSON
@@ -395,3 +395,95 @@ with tab3:
                               on_click=transfer_json_to_form,
                               args=(st.session_state.last_fetched_json,)
                               )
+
+
+# ==========================================
+# TAB 4: PUT/POST FHIR RESOURCES
+# ==========================================
+with tab4:
+    st.header("Submit FHIR Resources (PUT/POST)")
+
+    if 'creds' not in st.session_state:
+        st.warning("⚠️ Please upload a valid `credentials.txt` file in the sidebar to authenticate.")
+    else:
+        c = st.session_state['creds']
+        baseurl = str(c.get('baseurl', ''))
+        token = str(c.get('token', ''))
+        hostname = str(c.get('str', ''))
+
+        # Visual indicator showing current active profile parameters
+        with st.expander("Active Connection Info"):
+            st.write(f"**Base URL:** `{baseurl}`")
+            st.write(f"**Hostname:** `{hostname}`")
+            st.write(f"**Token Length:** {len(token)} characters")
+            
+        # Action layout configurations
+        col_method, col_res_type, col_res_id = st.columns(3)
+        with col_method:
+            http_method = st.selectbox("HTTP Method", ["POST", "PUT"], key="tab4_method_select")
+        with col_res_type:
+            payload_res_type = st.text_input("FHIR Resource Type", value="Patient", key="tab4_res_type")
+        with col_res_id:
+            payload_res_id = st.text_input(
+                "FHIR Resource ID", 
+                value="", 
+                disabled=(http_method == "POST"), 
+                help="Required for PUT operations.",
+                key="tab4_res_id"
+            )
+
+        # Build dynamic URL target endpoint
+        if http_method == "POST":
+            target_url = f"{baseurl}/{payload_res_type}"
+        else:
+            target_url = f"{baseurl}/{payload_res_type}/{payload_res_id}" if payload_res_id else f"{baseurl}/{payload_res_type}"
+
+        st.info(f"🚀 Target Endpoint: `{target_url}`")
+
+        # JSON Input Area
+        fhir_payload_string = st.text_area(
+            "FHIR Resource JSON Payload", 
+            value="{\n  \"resourceType\": \"" + payload_res_type + "\"\n}", 
+            height=300,
+            key="tab4_json_payload"
+        )
+
+        # Submission Execution Button
+        if st.button("Submit to FHIR Server", type="primary", key="tab4_submit_btn"):
+            if http_method == "PUT" and not payload_res_id:
+                st.error("❌ Resource ID is strictly required for PUT updates.")
+            else:
+                try:
+                    json_payload = json.loads(fhir_payload_string)
+                    
+                    # Core target headers
+                    # Match authorization layout used by your server specification
+                    headers = {
+                        'Authorization': f"Basic {token}",
+                        "Content-Type": "application/fhir+json",
+                        'Accept': 'application/fhir+json'
+                    }
+
+                    with st.spinner(f"Sending {http_method} request..."):
+                        if http_method == "POST":
+                            response = requests.post(target_url, json=json_payload, headers=headers)
+                        else:
+                            response = requests.put(target_url, json=json_payload, headers=headers)
+
+                    # Handle response validation status code window
+                    if response.status_code in [200, 201, 204]:
+                        st.success(f"✅ Success! Server returned HTTP Status {response.status_code}")
+                    else:
+                        st.error(f"❌ Server Error! Returned HTTP Status {response.status_code}")
+                        st.caption("Review the server error details returned below:")
+
+                    # Render text output directly if HTML is returned instead of JSON
+                    try:
+                        st.json(response.json())
+                    except ValueError:
+                        st.code(response.text, language="html")
+
+                except json.JSONDecodeError as je:
+                    st.error(f"❌ Invalid JSON format payload: {str(je)}")
+                except Exception as e:
+                    st.error(f"❌ Connection pipeline failure: {str(e)}")
