@@ -105,20 +105,6 @@ with tab2:
     # --- ADDED: Font Size Control Slider ---
     text_size = st.slider("Adjust Text Size:", min_value=12, max_value=48, value=24, step=2)
 
-    # --- UPDATED: Load your uploaded custom font ---
-    FONT_FILE = "Roboto-Bold.ttf"  # Change this to match your exact filename
-    if not os.path.exists(FONT_FILE):
-        font_url = "https://github.com"
-        urllib.request.urlretrieve(font_url, FONT_FILE)
-
-    try:
-        # This reads the font file uploaded to your GitHub repository
-        font = ImageFont.truetype(FONT_FILE, size=text_size)
-    except IOError:
-        # Universal fallback if the file is missing or misspelled
-        st.warning(f"Font file '{FONT_FILE}' not found in repo. Falling back to resizable system default.")
-        font = ImageFont.load_default(size=text_size)
-
     if st.button("Generate QR Code", key="btn_generate"):
         if user_input.strip() == "":
             st.warning("Please enter some text or a link first!")
@@ -137,17 +123,15 @@ with tab2:
             qr_w, qr_h = base_qr.size
 
             # --- UPDATED: Load a scalable font family ---
+            FONT_FILE = "Roboto-Bold.ttf"  # Change this to match your exact filename
             try:
                 # Attempts to use standard system fonts based on OS
                 # Windows uses 'arial.ttf', macOS uses 'Arial.ttf', Linux often uses 'DejaVuSans.ttf'
-                font = ImageFont.truetype("arial.ttf", size=text_size)
+                font = ImageFont.truetype(FONT_FILE, size=text_size)
             except IOError:
-                try:
-                    font = ImageFont.truetype("DejaVuSans.ttf", size=text_size)
-                except IOError:
-                    # Fallback if custom fonts are missing from your current hosting machine
-                    st.warning("Custom font not found. Using default system font (un-resizable).")
-                    font = ImageFont.load_default()
+                # Universal fallback if the file is missing or misspelled
+                st.warning(f"Font file '{FONT_FILE}' not found in repo. Falling back to resizable system default.")
+                font = ImageFont.load_default(size=text_size)
 
             # 2. Process the image layout based on selection
             if template_option == "QR Only":
@@ -169,10 +153,6 @@ with tab2:
                     [10, canvas_h - 10 - banner_h, canvas_w - 10, canvas_h - 10],
                     fill="black",
                 )
-                try:
-                    display_font = ImageFont.truetype(FONT_FILE, size=32)
-                except IOError:
-                    display_font = ImageFont.load_default(size=32)
                 draw.text(
                     (canvas_w // 2, canvas_h - 10 - (banner_h // 2)),
                     "SCAN ME",
