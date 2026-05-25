@@ -4,6 +4,8 @@ import numpy as np
 import qrcode
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
+import os
+import urllib.request
 
 st.title("QR Code Toolbox")
 
@@ -103,16 +105,13 @@ with tab2:
     # --- ADDED: Font Size Control Slider ---
     text_size = st.slider("Adjust Text Size:", min_value=12, max_value=48, value=24, step=2)
 
-    # --- UPDATED FONT LOADING BLOCK ---
-    try:
-        # Attempts to use standard local operating system fonts
-        font = ImageFont.truetype("Roboto-Bold.ttf", size=text_size)
-    except IOError:
-        try:
-            font = ImageFont.truetype("DejaVuSans.ttf", size=text_size)
-        except IOError:
-            # FIX: Dynamically resizes Pillow's modern default vector engine font
-            font = ImageFont.load_default(size=text_size)
+    # Download a reliable font asset directly into your project root directory if missing
+    FONT_PATH = "Roboto-Bold.ttf"
+    if not os.path.exists(FONT_PATH):
+        url = "https://github.com"
+        urllib.request.urlretrieve(url, FONT_PATH)
+    font = ImageFont.truetype(FONT_PATH, size=text_size)
+
 
     if st.button("Generate QR Code", key="btn_generate"):
         if user_input.strip() == "":
