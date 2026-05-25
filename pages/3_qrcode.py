@@ -107,6 +107,9 @@ with tab2:
 
     # --- UPDATED: Load your uploaded custom font ---
     FONT_FILE = "Roboto-Bold.ttf"  # Change this to match your exact filename
+    if not os.path.exists(FONT_FILE):
+        font_url = "https://github.com"
+        urllib.request.urlretrieve(font_url, FONT_FILE)
 
     try:
         # This reads the font file uploaded to your GitHub repository
