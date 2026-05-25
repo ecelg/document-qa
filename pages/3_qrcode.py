@@ -104,15 +104,7 @@ with tab2:
     text_size = st.slider("Adjust Text Size:", min_value=12, max_value=48, value=24, step=2)
 
     # --- UPDATED FONT LOADING BLOCK ---
-    try:
-        # Attempts to use standard local operating system fonts
-        font = ImageFont.truetype("arial.ttf", size=text_size)
-    except IOError:
-        try:
-            font = ImageFont.truetype("DejaVuSans.ttf", size=text_size)
-        except IOError:
-            # FIX: Dynamically resizes Pillow's modern default vector engine font
-            font = ImageFont.load_default(size=text_size)
+    font = ImageFont.load_default(size=text_size)
 
     if st.button("Generate QR Code", key="btn_generate"):
         if user_input.strip() == "":
