@@ -4,8 +4,6 @@ import numpy as np
 import qrcode
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
-import os
-import urllib.request
 
 st.title("QR Code Toolbox")
 
