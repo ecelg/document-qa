@@ -169,6 +169,10 @@ with tab2:
                     [10, canvas_h - 10 - banner_h, canvas_w - 10, canvas_h - 10],
                     fill="black",
                 )
+                try:
+                    display_font = ImageFont.truetype(FONT_FILE, size=32)
+                except IOError:
+                    display_font = ImageFont.load_default(size=32)
                 draw.text(
                     (canvas_w // 2, canvas_h - 10 - (banner_h // 2)),
                     "SCAN ME",
