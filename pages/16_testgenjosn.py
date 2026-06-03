@@ -190,34 +190,34 @@ with tab1:
     else:
         st.info("Please upload credentials and click 'Login / Sync Data' to display flights.")
 
-# Tab 2: Event Creator Template Generator
+# Tab 2: Event Creator Template Generator & API Submitter
 with tab2:
     st.subheader("🗓️ Event Creator Template Generator")
-    st.markdown("Fill out the details below to generate and manually edit your event JSON payload.")
+    st.markdown("Fill out the details below to generate, edit, or submit your event payload.")
 
     # 1. Row-based UI Inputs using Streamlit Columns
     col_left, col_right = st.columns(2)
 
     with col_left:
-        name_val = st.text_input("Name:", placeholder="some event")
+        name_val = st.text_input("Name:", placeholder="e.g., HealthTechX Asia")
         
         # Date and Time Layout
         st.markdown("**Start Schedule**")
         c_sd, c_st = st.columns(2)
         with c_sd:
-            s_date = st.date_input("Start Date:", value=datetime.today()) # Updated to default to today
+            s_date = st.date_input("Start Date:", value=datetime.today())
         with c_st:
             s_hour = st.selectbox(
                 "Start Time:", 
                 options=[f"{i:02d}:00:00" for i in range(24)], 
-                index=9, # Defaults to 09:00:00
+                index=9, 
                 key="evt_sh"
             )
 
         status_val = st.selectbox(
             "Status:",
             options=['ongoing', 'planning', 'changed', 'cancelled', 'monitoring'],
-            index=1 # Defaults to 'planning'
+            index=1
         )
 
     with col_right:
@@ -226,19 +226,19 @@ with tab2:
         st.markdown("**End Schedule**")
         c_ed, c_et = st.columns(2)
         with c_ed:
-            e_date = st.date_input("End Date:", value=datetime.today()) # Updated to default to today
+            e_date = st.date_input("End Date:", value=datetime.today())
         with c_et:
             e_hour = st.selectbox(
                 "End Time:", 
                 options=[f"{i:02d}:00:00" for i in range(24)], 
-                index=17, # Defaults to 17:00:00
+                index=17, 
                 key="evt_eh"
             )
 
         event_type_map = {'ISC': '1', 'Run': '2', 'Family': '3', 'Friend': '4'}
         type_val = st.selectbox("Type:", options=list(event_type_map.keys()))
 
-    # 2. Combine Strings & Construct Dictionary
+    # 2. Combine Strings & Construct Dictionary Payload
     start_ts = f"{s_date.strftime('%Y-%m-%d')} {s_hour}"
     end_ts = f"{e_date.strftime('%Y-%m-%d')} {e_hour}"
 
@@ -257,18 +257,72 @@ with tab2:
     # Convert dictionary into a formatted JSON text block string
     json_event_string = json.dumps(event_data, indent=4)
     
-    # 3. Output into an editable text area
+    # Output into an editable text area
     editable_event_json = st.text_area(
-        label="Freely modify or copy your event payload:",
+        label="Freely modify or copy your event payload before submitting:",
         value=json_event_string,
-        height=350
+        height=300
     )
 
+    # Simple validation flag tracking
+    is_valid_json = False
     try:
-        json.loads(editable_event_json)
-        st.caption("✅ Valid Event JSON structure.")
+        parsed_payload = json.loads(editable_event_json)
+        st.caption("✅ Valid Event JSON structure ready.")
+        is_valid_json = True
     except Exception:
-        st.caption("❌ Invalid JSON formatting structure syntax.")
+        st.caption("❌ Invalid JSON formatting structure syntax. Submission blocked.")
+
+    st.markdown("---")
+    st.subheader("🚀 API Transmission Engine")
+
+    # Target ID input and Action submission buttons layout row
+    api_col1, api_col2, api_col3 = st.columns([2, 2, 2])
+
+    with api_col1:
+        target_id = st.text_input("Target ID:", placeholder="Required for Put (Update) actions")
+
+    # Ensure authentication headers are available from active sessions
+    if 'creds' in st.session_state:
+        c = st.session_state['creds']
+        baseurl = str(c.get('str'))
+        token = str(c.get('token'))
+        
+        HEADERS = {
+            "Content-Type": "application/json",
+            "Authorization": f"Basic {token}"
+        }
+        API_BASE_URL = f"http://{baseurl}/csp/myrest/event"
+
+        with api_col2:
+            st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True) # Spacer alignment
+            if st.button("Post Event (Create)", use_container_width=True, type="primary", disabled=not is_valid_json):
+                url = f"{API_BASE_URL}/create"
+                try:
+                    response = requests.post(url, json=parsed_payload, headers=HEADERS)
+                    if response.status_code in [200, 201]:
+                        st.success(f"Success! Created successfully. Status: {response.status_code}")
+                    else:
+                        st.error(f"Error {response.status_code}: {response.text}")
+                except Exception as e:
+                    st.error(f"Network error processing POST: {e}")
+
+        with api_col3:
+            st.markdown("<div style='padding-top: 28px;'></div>", unsafe_allow_html=True) # Spacer alignment
+            # Disable button if target_id is empty or JSON is corrupted
+            put_disabled = not is_valid_json or not target_id.strip()
+            if st.button("Put Event (Update)", use_container_width=True, disabled=put_disabled):
+                url = f"{API_BASE_URL}/update/{target_id.strip()}"
+                try:
+                    response = requests.put(url, json=parsed_payload, headers=HEADERS)
+                    if response.status_code in [200, 201]:
+                        st.success(f"Success! Updated ID {target_id} successfully. Status: {response.status_code}")
+                    else:
+                        st.error(f"Error {response.status_code}: {response.text}")
+                except Exception as e:
+                    st.error(f"Network error processing PUT: {e}")
+    else:
+        st.warning("⚠️ API Submissions locked. Please authenticate via credentials first in the sidebar.")
 
 # Reset / Clear Functionality (Preserved at the bottom of the script)
 st.sidebar.markdown("---")
