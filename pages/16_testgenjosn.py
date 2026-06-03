@@ -81,7 +81,7 @@ with tab1:
         sec_col1, sec_col2 = st.columns(2)
         
         sectors_payload = []
-        global_airline = "Cathay Pacific"  # Fallback global airline tracker
+        global_airline = "" # Fallback global airline tracker
         
         # === SECTOR 1 CONFIGURATION ===
         with sec_col1:
