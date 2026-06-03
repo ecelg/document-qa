@@ -190,12 +190,87 @@ with tab1:
     else:
         st.info("Please upload credentials and click 'Login / Sync Data' to display flights.")
 
-# Tab 2: Raw Debugger
+# Tab 2: Event Creator Template Generator
 with tab2:
-    st.subheader("Session Status")
-    st.json({k: (f"DataFrame [{len(v)} rows]" if isinstance(v, pd.DataFrame) else v) for k, v in st.session_state.items()})
+    st.subheader("🗓️ Event Creator Template Generator")
+    st.markdown("Fill out the details below to generate and manually edit your event JSON payload.")
 
-# Reset / Clear Functionality
+    # 1. Row-based UI Inputs using Streamlit Columns
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        name_val = st.text_input("Name:", placeholder="e.g., HealthTechX Asia")
+        
+        # Date and Time Layout
+        st.markdown("**Start Schedule**")
+        c_sd, c_st = st.columns(2)
+        with c_sd:
+            s_date = st.date_input("Start Date:", value=datetime(2026, 5, 6))
+        with c_st:
+            s_hour = st.selectbox(
+                "Start Time:", 
+                options=[f"{i:02d}:00:00" for i in range(24)], 
+                index=9, # Defaults to 09:00:00
+                key="evt_sh"
+            )
+
+        status_val = st.selectbox(
+            "Status:",
+            options=['ongoing', 'planning', 'changed', 'cancelled', 'monitoring'],
+            index=1 # Defaults to 'planning'
+        )
+
+    with col_right:
+        descp_val = st.text_area("Description:", placeholder="Event details...", height=68)
+        
+        st.markdown("**End Schedule**")
+        c_ed, c_et = st.columns(2)
+        with c_ed:
+            e_date = st.date_input("End Date:", value=datetime(2026, 5, 7))
+        with c_et:
+            e_hour = st.selectbox(
+                "End Time:", 
+                options=[f"{i:02d}:00:00" for i in range(24)], 
+                index=17, # Defaults to 17:00:00
+                key="evt_eh"
+            )
+
+        event_type_map = {'ISC': '1', 'Run': '2', 'Family': '3', 'Friend': '4'}
+        type_val = st.selectbox("Type:", options=list(event_type_map.keys()))
+
+    # 2. Combine Strings & Construct Dictionary
+    start_ts = f"{s_date.strftime('%Y-%m-%d')} {s_hour}"
+    end_ts = f"{e_date.strftime('%Y-%m-%d')} {e_hour}"
+
+    event_data = {
+        "name": name_val,
+        "descp": descp_val,
+        "starttime": start_ts,
+        "endtime": end_ts,
+        "status": status_val,
+        "eventtype": event_type_map[type_val]
+    }
+
+    st.markdown("---")
+    st.subheader("🛠️ Compiled Event JSON Editor")
+
+    # Convert dictionary into a formatted JSON text block string
+    json_event_string = json.dumps(event_data, indent=4)
+    
+    # 3. Output into an editable text area
+    editable_event_json = st.text_area(
+        label="Freely modify or copy your event payload:",
+        value=json_event_string,
+        height=350
+    )
+
+    try:
+        json.loads(editable_event_json)
+        st.caption("✅ Valid Event JSON structure.")
+    except Exception:
+        st.caption("❌ Invalid JSON formatting structure syntax.")
+
+# Reset / Clear Functionality (Preserved at the bottom of the script)
 st.sidebar.markdown("---")
 if st.sidebar.button("Clear All Session Data"):
     clear_session()
