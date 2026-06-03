@@ -199,13 +199,13 @@ with tab2:
     col_left, col_right = st.columns(2)
 
     with col_left:
-        name_val = st.text_input("Name:", placeholder="e.g., HealthTechX Asia")
+        name_val = st.text_input("Name:", placeholder="some event")
         
         # Date and Time Layout
         st.markdown("**Start Schedule**")
         c_sd, c_st = st.columns(2)
         with c_sd:
-            s_date = st.date_input("Start Date:", value=datetime(2026, 5, 6))
+            s_date = st.date_input("Start Date:", value=datetime.today()) # Updated to default to today
         with c_st:
             s_hour = st.selectbox(
                 "Start Time:", 
@@ -226,7 +226,7 @@ with tab2:
         st.markdown("**End Schedule**")
         c_ed, c_et = st.columns(2)
         with c_ed:
-            e_date = st.date_input("End Date:", value=datetime(2026, 5, 7))
+            e_date = st.date_input("End Date:", value=datetime.today()) # Updated to default to today
         with c_et:
             e_hour = st.selectbox(
                 "End Time:", 
