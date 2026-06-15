@@ -11,7 +11,8 @@ st.title("✈️ Global Flight Operations & Route Mapping")
 AIRPORT_COORDS = {
     'SIN': [103.9910, 1.3644], 'HKG': [113.9145, 22.3080],
     'LHR': [-0.4543, 51.4700], 'DPS': [115.1664, -8.7482],
-    'HND': [139.7811, 35.5494], 'NRT': [140.3929, 35.7720]
+    'HND': [139.7811, 35.5494], 'NRT': [140.3929, 35.7720],
+    'BKK': [100.7470, 13.6811]
 }
 
 # Function to wipe session data
