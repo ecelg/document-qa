@@ -4,12 +4,11 @@ import numpy as np
 import qrcode
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
-from pyzbar.pyzbar import decode  
 
 st.title("QR Code Toolbox")
 
 # Create the two tabs
-tab1, tab2, tab3 = st.tabs(["🔍 QR Scanner", "✨ QR Generator", "📊 Barcode Reader"])
+tab1, tab2 = st.tabs(["🔍 QR Scanner", "✨ QR Generator"])
 
 # ==========================================
 # TAB 1: QR CODE SCANNER (Camera + Upload)
@@ -308,53 +307,3 @@ with tab2:
                 key="download_templated_qr",
             )
 
-# ==========================================
-# TAB 3: BARCODE READER (Camera + Upload)
-# ==========================================
-with tab3:
-    st.subheader("Scan standard Barcodes")
-    st.caption("Supports formats like EAN-13, UPC-A, Code 128, Code 39, etc.")
-
-    # Initialize session states for scanning status and the text box result
-    if "barcode_scanning" not in st.session_state:
-        st.session_state.barcode_scanning = False
-    if "barcode_result" not in st.session_state:
-        st.session_state.barcode_result = ""
-
-    # --- SECTION A: Camera Control ---
-    if not st.session_state.barcode_scanning:
-        if st.button("Open Live Barcode Camera", key="barcode_btn_start"):
-            st.session_state.barcode_scanning = True
-            st.rerun()
-    else:
-        if st.button("Close Live Barcode Camera", key="barcode_btn_stop"):
-            st.session_state.barcode_scanning = False
-            st.rerun()
-
-    # --- SECTION B: Live Camera Scanner ---
-    if st.session_state.barcode_scanning:
-        barcode_img_file = st.camera_input("Position the barcode clearly inside the frame", key="barcode_camera")
-
-        if barcode_img_file is not None:
-            bytes_data = barcode_img_file.getvalue()
-            cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
-
-            barcodes = decode(cv2_img)
-
-            if barcodes:
-                st.success("🎉 Live Barcode Detected Successfully!")
-                # Extract the data from the first detected barcode
-                st.session_state.barcode_result = barcodes[0].data.decode("utf-8")
-                
-                # Turn off the camera automatically after a successful scan
-                st.session_state.barcode_scanning = False
-                st.rerun()
-            else:
-                st.error("No barcode found in camera frame. Adjust the distance or angle.")
-
-    # --- SECTION C: Results Textbox ---
-    st.text_input(
-        label="Scanned Barcode Result", 
-        value=st.session_state.barcode_result, 
-        key="barcode_display_box"
-    )
