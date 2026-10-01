@@ -4,11 +4,12 @@ import numpy as np
 import qrcode
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
+from pyzbar.pyzbar import decode  
 
 st.title("QR Code Toolbox")
 
 # Create the two tabs
-tab1, tab2 = st.tabs(["🔍 QR Scanner", "✨ QR Generator"])
+tab1, tab2, tab3 = st.tabs(["🔍 QR Scanner", "✨ QR Generator", "📊 Barcode Reader"])
 
 # ==========================================
 # TAB 1: QR CODE SCANNER (Camera + Upload)
@@ -306,3 +307,69 @@ with tab2:
                 mime="image/png",
                 key="download_templated_qr",
             )
+
+# ==========================================
+# TAB 3: BARCODE READER (Camera + Upload)
+# ==========================================
+with tab3:
+    st.subheader("Scan or Upload standard Barcodes")
+    st.caption("Supports formats like EAN-13, UPC-A, Code 128, Code 39, etc.")
+
+    # --- SECTION A: File Uploader ---
+    barcode_file = st.file_uploader(
+        "Upload a Barcode image (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"], key="barcode_uploader"
+    )
+
+    if barcode_file is not None:
+        file_bytes = np.frombuffer(barcode_file.read(), np.uint8)
+        cv2_img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        
+        # Decode using pyzbar
+        barcodes = decode(cv2_img)
+
+        if barcodes:
+            st.success(f"🎉 Detected {len(barcodes)} barcode(s)!")
+            for i, barcode in enumerate(barcodes):
+                barcode_data = barcode.data.decode("utf-8")
+                barcode_type = barcode.type
+                st.markdown(f"**Barcode {i+1}:**")
+                st.write(f"- **Content:** `{barcode_data}`")
+                st.write(f"- **Format Type:** `{barcode_type}`")
+        else:
+            st.error("No valid barcode detected. Ensure lighting is optimal and lines are clear.")
+
+    st.divider()
+
+    # --- SECTION B: Live Camera Scanner ---
+    if "barcode_scanning" not in st.session_state:
+        st.session_state.barcode_scanning = False
+
+    if not st.session_state.barcode_scanning:
+        if st.button("Open Live Barcode Camera", key="barcode_btn_start"):
+            st.session_state.barcode_scanning = True
+            st.rerun()
+    else:
+        if st.button("Close Live Barcode Camera", key="barcode_btn_stop"):
+            st.session_state.barcode_scanning = False
+            st.rerun()
+
+    if st.session_state.barcode_scanning:
+        barcode_img_file = st.camera_input("Position the barcode clearly inside the frame", key="barcode_camera")
+
+        if barcode_img_file is not None:
+            bytes_data = barcode_img_file.getvalue()
+            cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
+
+            barcodes = decode(cv2_img)
+
+            if barcodes:
+                st.success("🎉 Live Barcode Detected Successfully!")
+                for barcode in barcodes:
+                    barcode_data = barcode.data.decode("utf-8")
+                    barcode_type = barcode.type
+                    st.write(f"**Decoded Content:** `{barcode_data}` ({barcode_type})")
+                
+                st.session_state.barcode_scanning = False
+                st.button("Scan Another Barcode", key="barcode_btn_again")
+            else:
+                st.error("No barcode found in camera frame. Adjust the distance or angle.")
